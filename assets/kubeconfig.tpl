@@ -32,7 +32,7 @@ users:
         - "token"
         - "-i"
         - "{{ .EKSCluster }}"
-    {{ if .EKSRoleArn }}
+    {{- if .EKSRoleArn }}
         - "-r"
         - "{{ .EKSRoleArn }}"
     {{ end }}

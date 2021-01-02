@@ -35,8 +35,8 @@ type Config struct {
 	Namespace          string   ``                                // Kubernetes namespace for all helm commands
 	CreateNamespace    bool     `split_words:"true"`              // Pass --create-namespace to `helm upgrade`
 	KubeToken          string   `split_words:"true"`              // Kubernetes authentication token to put in .kube/config
-	EKSCluster         string   ``
-	EKSRoleArn         string   ``
+	EKSCluster         string   `envconfig:"eks_cluster"`
+	EKSRoleArn         string   `envconfig:"eks_role_arn"`
 	SkipKubeconfig     bool     `envconfig:"skip_kubeconfig"`        // Skip kubeconfig creation
 	SkipTLSVerify      bool     `envconfig:"skip_tls_verify"`        // Put insecure-skip-tls-verify in .kube/config
 	Certificate        string   `envconfig:"kube_certificate"`       // The Kubernetes cluster CA's self-signed certificate (must be base64-encoded)
