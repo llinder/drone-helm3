@@ -32,8 +32,8 @@ users:
         - "token"
         - "-i"
         - "{{ .EKSCluster }}"
-    {{ if .EKSRoleARN }}
+    {{ if .EKSRoleArn }}
         - "-r"
-        - "{{ .EKSRoleARN }}"
+        - "{{ .EKSRoleArn }}"
     {{ end }}
 {{ end }}
