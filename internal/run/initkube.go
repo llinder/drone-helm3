@@ -3,10 +3,11 @@ package run
 import (
 	"errors"
 	"fmt"
-	"github.com/pelotech/drone-helm3/internal/env"
 	"io"
 	"os"
 	"text/template"
+
+	"github.com/pelotech/drone-helm3/internal/env"
 )
 
 // InitKube is a step in a helm Plan that initializes the kubernetes config file.
@@ -26,6 +27,8 @@ type kubeValues struct {
 	Namespace      string
 	ServiceAccount string
 	Token          string
+	EKSCluster     string
+	EKSRoleArn     string
 }
 
 // NewInitKube creates a InitKube using the given Config and filepaths. No validation is performed at this time.
@@ -39,6 +42,8 @@ func NewInitKube(cfg env.Config, templateFile, configFile string) *InitKube {
 			Namespace:      cfg.Namespace,
 			ServiceAccount: cfg.ServiceAccount,
 			Token:          cfg.KubeToken,
+			EKSCluster:     cfg.EKSCluster,
+			EKSRoleArn:     cfg.EKSRoleArn,
 		},
 		templateFilename: templateFile,
 		configFilename:   configFile,
@@ -61,8 +66,10 @@ func (i *InitKube) Prepare() error {
 	if i.values.APIServer == "" {
 		return errors.New("an API Server is needed to deploy")
 	}
-	if i.values.Token == "" {
-		return errors.New("token is needed to deploy")
+	if i.values.EKSCluster == "" {
+		if i.values.Token == "" {
+			return errors.New("token is needed to deploy")
+		}
 	}
 
 	if i.values.ServiceAccount == "" {

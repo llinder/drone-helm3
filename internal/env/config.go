@@ -21,20 +21,22 @@ var (
 // not have the `PLUGIN_` prefix.
 type Config struct {
 	// Configuration for drone-helm itself
-	Command            string   `envconfig:"mode"`                   // Helm command to run
-	DroneEvent         string   `envconfig:"drone_build_event"`      // Drone event that invoked this plugin.
-	UpdateDependencies bool     `split_words:"true"`                 // [Deprecated] Call `helm dependency update` before the main command (deprecated, use dependencies_action: update instead)
-	DependenciesAction string   `split_words:"true"`                 // Call `helm dependency build` or `helm dependency update` before the main command
-	AddRepos           []string `split_words:"true"`                 // Call `helm repo add` before the main command
-	RepoCertificate    string   `envconfig:"repo_certificate"`       // The Helm chart repository's self-signed certificate (must be base64-encoded)
-	RepoCACertificate  string   `envconfig:"repo_ca_certificate"`    // The Helm chart repository CA's self-signed certificate (must be base64-encoded)
-	Debug              bool     ``                                   // Generate debug output and pass --debug to all helm commands
-	Values             string   ``                                   // Argument to pass to --set in applicable helm commands
-	StringValues       string   `split_words:"true"`                 // Argument to pass to --set-string in applicable helm commands
-	ValuesFiles        []string `split_words:"true"`                 // Arguments to pass to --values in applicable helm commands
-	Namespace          string   ``                                   // Kubernetes namespace for all helm commands
-	CreateNamespace    bool     `split_words:"true"`                 // Pass --create-namespace to `helm upgrade`
-	KubeToken          string   `split_words:"true"`                 // Kubernetes authentication token to put in .kube/config
+	Command            string   `envconfig:"mode"`                // Helm command to run
+	DroneEvent         string   `envconfig:"drone_build_event"`   // Drone event that invoked this plugin.
+	UpdateDependencies bool     `split_words:"true"`              // [Deprecated] Call `helm dependency update` before the main command (deprecated, use dependencies_action: update instead)
+	DependenciesAction string   `split_words:"true"`              // Call `helm dependency build` or `helm dependency update` before the main command
+	AddRepos           []string `split_words:"true"`              // Call `helm repo add` before the main command
+	RepoCertificate    string   `envconfig:"repo_certificate"`    // The Helm chart repository's self-signed certificate (must be base64-encoded)
+	RepoCACertificate  string   `envconfig:"repo_ca_certificate"` // The Helm chart repository CA's self-signed certificate (must be base64-encoded)
+	Debug              bool     ``                                // Generate debug output and pass --debug to all helm commands
+	Values             string   ``                                // Argument to pass to --set in applicable helm commands
+	StringValues       string   `split_words:"true"`              // Argument to pass to --set-string in applicable helm commands
+	ValuesFiles        []string `split_words:"true"`              // Arguments to pass to --values in applicable helm commands
+	Namespace          string   ``                                // Kubernetes namespace for all helm commands
+	CreateNamespace    bool     `split_words:"true"`              // Pass --create-namespace to `helm upgrade`
+	KubeToken          string   `split_words:"true"`              // Kubernetes authentication token to put in .kube/config
+	EKSCluster         string   ``
+	EKSRoleArn         string   ``
 	SkipKubeconfig     bool     `envconfig:"skip_kubeconfig"`        // Skip kubeconfig creation
 	SkipTLSVerify      bool     `envconfig:"skip_tls_verify"`        // Put insecure-skip-tls-verify in .kube/config
 	Certificate        string   `envconfig:"kube_certificate"`       // The Kubernetes cluster CA's self-signed certificate (must be base64-encoded)
@@ -77,6 +79,8 @@ func NewConfig(stdout, stderr io.Writer) (*Config, error) {
 		Force:          aliases.Force,
 		KubeToken:      aliases.KubeToken,
 		Certificate:    aliases.Certificate,
+		EKSCluster:     aliases.EKSCluster,
+		EKSRoleArn:     aliases.EKSRoleArn,
 
 		Stdout: stdout,
 		Stderr: stderr,
@@ -165,4 +169,6 @@ type settingAliases struct {
 	Force          bool     ``
 	KubeToken      string   `envconfig:"kubernetes_token"`
 	Certificate    string   `envconfig:"kubernetes_certificate"`
+	EKSCluster     string   `envconfig:"eks_cluster"`
+	EKSRoleArn     string   `envconfig:"eks_role_arn"`
 }
