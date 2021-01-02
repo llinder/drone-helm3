@@ -2,14 +2,15 @@ package run
 
 import (
 	"fmt"
-	"github.com/pelotech/drone-helm3/internal/env"
-	"github.com/stretchr/testify/suite"
-	yaml "gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
 	"text/template"
+
+	"github.com/pelotech/drone-helm3/internal/env"
+	"github.com/stretchr/testify/suite"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type InitKubeTestSuite struct {
@@ -108,6 +109,54 @@ func (suite *InitKubeTestSuite) TestExecuteGeneratesConfig() {
 		"user: chef",
 		"name: chef",
 		"token: eWVhaCB3ZSB0b2tpbic",
+		"certificate-authority-data: d293LCB5b3UgYXJlIHNvIGNvb2wgZm9yIHNtb2tpbmcgd2VlZCDwn5mE",
+	}
+	for _, expected := range expectations {
+		suite.Contains(string(contents), expected)
+	}
+
+	// the generated config should be valid yaml, with no repeated keys
+	conf := map[string]interface{}{}
+	suite.NoError(yaml.UnmarshalStrict(contents, &conf))
+
+	// test the other branch of the certificate/SkipTLSVerify conditional
+	init.values.SkipTLSVerify = true
+	init.values.Certificate = ""
+
+	suite.Require().NoError(init.Prepare())
+	suite.Require().NoError(init.Execute())
+	contents, err = ioutil.ReadFile(configFile.Name())
+	suite.Require().NoError(err)
+	suite.Contains(string(contents), "insecure-skip-tls-verify: true")
+
+	conf = map[string]interface{}{}
+	suite.NoError(yaml.UnmarshalStrict(contents, &conf))
+}
+
+func (suite *InitKubeTestSuite) TestPrepareEKSConfig() {
+	configFile, err := tempfile("kubeconfig********.yml", "")
+	defer os.Remove(configFile.Name())
+	suite.Require().NoError(err)
+
+	cfg := env.Config{
+		APIServer:   "https://kube.cluster/peanut",
+		EKSCluster:  "eks-cluster-name",
+		EKSRoleArn:  "arn:aws:iam::19691207:role/mrPraline",
+		Certificate: "d293LCB5b3UgYXJlIHNvIGNvb2wgZm9yIHNtb2tpbmcgd2VlZCDwn5mE",
+		Namespace:   "marshmallow",
+	}
+	init := NewInitKube(cfg, "../../assets/kubeconfig.tpl", configFile.Name()) // the actual kubeconfig template
+	suite.Require().NoError(init.Prepare())
+	suite.Require().NoError(init.Execute())
+
+	contents, err := ioutil.ReadFile(configFile.Name())
+	suite.Require().NoError(err)
+
+	// each setting should be reflected in the generated file
+	expectations := []string{
+		"namespace: marshmallow",
+		"server: https://kube.cluster/peanut",
+		"name: helm",
 		"certificate-authority-data: d293LCB5b3UgYXJlIHNvIGNvb2wgZm9yIHNtb2tpbmcgd2VlZCDwn5mE",
 	}
 	for _, expected := range expectations {
